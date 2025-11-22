@@ -1,0 +1,682 @@
+#pragma version =0.4.6;
+#pragma allow-post-modification;
+#pragma compute-asm-ltr;
+
+;; TestTwo_WalletMap.headers.fc
+;;
+;; Header files for WalletMap
+;; NOTE: declarations are sorted for optimal order
+;;
+
+;; __tact_store_address_opt
+builder __tact_store_address_opt(builder b, slice address) inline;
+
+;; __tact_not_null
+forall X -> X __tact_not_null(X x) impure inline;
+
+;; __tact_context_get
+(int, slice, int, slice) __tact_context_get() inline;
+
+;; __tact_context_get_sender
+slice __tact_context_get_sender() inline;
+
+;; __tact_dict_get_slice_int
+int __tact_dict_get_slice_int(cell d, int kl, slice k, int vl) inline;
+
+;; __tact_dict_set_slice_int
+(cell, ()) __tact_dict_set_slice_int(cell d, int kl, slice k, int v, int vl) inline;
+
+;; $DeployOk$_store
+builder $DeployOk$_store(builder build_0, (int) v) inline;
+
+;; $DeployOk$_store_cell
+cell $DeployOk$_store_cell((int) v, builder b) inline;
+
+;; $JettonTransfer$_store
+builder $JettonTransfer$_store(builder build_0, (int, int, slice, slice, cell, int, slice) v) inline;
+
+;; $JettonTransfer$_store_cell
+cell $JettonTransfer$_store_cell((int, int, slice, slice, cell, int, slice) v, builder b) inline;
+
+;; $WalletMap$_store
+builder $WalletMap$_store(builder build_0, (slice, cell, slice) v) inline;
+
+;; $WalletMap$_load
+(slice, ((slice, cell, slice))) $WalletMap$_load(slice sc_0) inline;
+
+;; $Context$_get_value
+_ $Context$_get_value((int, slice, int, slice) v) inline;
+
+;; $WalletMap$init$_load
+(slice, ((slice))) $WalletMap$init$_load(slice sc_0) inline;
+
+;; $WalletMap$_contract_init
+(slice, cell, slice) $WalletMap$_contract_init(slice $admin) impure inline;
+
+;; $WalletMap$_contract_load
+(slice, cell, slice) $WalletMap$_contract_load() impure inline;
+
+;; $WalletMap$_contract_store
+() $WalletMap$_contract_store((slice, cell, slice) v) impure inline;
+
+;; $WalletMap$_fun_getWalletAmount
+((slice, cell, slice), int) $WalletMap$_fun_getWalletAmount((slice, cell, slice) $self, slice $wallet) impure inline_ref;
+
+;; $WalletMap$_fun_getAllWallets
+((slice, cell, slice), cell) $WalletMap$_fun_getAllWallets((slice, cell, slice) $self) impure inline_ref;
+
+;; $WalletMap$_fun_getMyJettonWallet
+((slice, cell, slice), slice) $WalletMap$_fun_getMyJettonWallet((slice, cell, slice) $self) impure inline_ref;
+
+;; $MessageParameters$_constructor_bounce_to_value_mode_body
+((int, cell, int, slice, int)) $MessageParameters$_constructor_bounce_to_value_mode_body(int $bounce, slice $to, int $value, int $mode, cell $body) inline;
+
+;; $WalletMap$_fun_notify
+((slice, cell, slice), ()) $WalletMap$_fun_notify((slice, cell, slice) $self, cell $body) impure inline;
+
+;; $SendParameters$_constructor_to_value_bounce_body
+((int, cell, cell, cell, int, slice, int)) $SendParameters$_constructor_to_value_bounce_body(slice $to, int $value, int $bounce, cell $body) inline;
+
+;; $JettonTransfer$_constructor_queryId_amount_destination_responseDestination_customPayload_forwardTonAmount_forwardPayload
+((int, int, slice, slice, cell, int, slice)) $JettonTransfer$_constructor_queryId_amount_destination_responseDestination_customPayload_forwardTonAmount_forwardPayload(int $queryId, int $amount, slice $destination, slice $responseDestination, cell $customPayload, int $forwardTonAmount, slice $forwardPayload) inline;
+
+;; $SendParameters$_constructor_to_bounce_value_mode
+((int, cell, cell, cell, int, slice, int)) $SendParameters$_constructor_to_bounce_value_mode(slice $to, int $bounce, int $value, int $mode) inline;
+
+;; $DeployOk$_constructor_queryId
+((int)) $DeployOk$_constructor_queryId(int $queryId) inline;
+
+
+;; TestTwo_WalletMap.stdlib.fc
+global (int, slice, int, slice) __tact_context;
+global slice __tact_context_sender;
+global cell __tact_child_contract_codes;
+global int __tact_randomized;
+
+(slice, slice) __tact_load_address_opt(slice cs) asm """
+
+            b{00} SDBEGINSQ
+            IF:<{
+              PUSHNULL
+            }>ELSE<{
+              LDMSGADDR
+              SWAP
+            }>
+
+""";
+
+builder __tact_store_addr_none(builder b) asm "b{00} STSLICECONST";
+
+builder __tact_store_address_opt(builder b, slice address) inline {
+    if (null?(address)) {
+        return __tact_store_addr_none(b);
+    } else {
+        return b.store_slice(address);
+    }
+}
+
+forall X -> X __tact_not_null(X x) impure inline {
+    throw_if(128, null?(x)); return x;
+}
+
+(cell, int) __tact_dict_delete(cell dict, int key_len, slice index) asm(index dict key_len) """
+    DICTDEL
+""";
+
+(slice, int) __tact_dict_get(cell dict, int key_len, slice index) asm(index dict key_len) """
+    DICTGET NULLSWAPIFNOT
+""";
+
+(int, slice, int, slice) __tact_context_get() inline {
+    return __tact_context;
+}
+
+slice __tact_context_get_sender() inline {
+    return __tact_context_sender;
+}
+
+int __tact_dict_get_slice_int(cell d, int kl, slice k, int vl) inline {
+    var (r, ok) = __tact_dict_get(d, kl, k);
+    if (ok) {
+        return r~load_int(vl);
+    } else {
+        return null();
+    }
+}
+
+(cell, ()) __tact_dict_set_slice_int(cell d, int kl, slice k, int v, int vl) inline {
+    if (null?(v)) {
+        var (r, ok) = __tact_dict_delete(d, kl, k);
+        return (r, ());
+    } else {
+        return (dict_set_builder(d, kl, k, begin_cell().store_int(v, vl)), ());
+    }
+}
+
+builder $global_beginCell() impure asm """
+    NEWC
+""";
+
+int $global_myBalance() impure asm """
+    BALANCE FIRST
+""";
+
+() $global_nativeReserve(int $amount, int $mode) impure asm """
+    RAWRESERVE
+""";
+
+() $global_message((int, cell, int, slice, int) $params) impure asm """
+    NEWC
+    b{01} STSLICECONST  // store tag = $0 and ihr_disabled = true
+    1 STI               // store `bounce`
+    b{000} STSLICECONST // store bounced = false and src = addr_none
+    STSLICE             // store `to`
+    SWAP
+    STGRAMS             // store `value`
+    106 PUSHINT         // 1 + 4 + 4 + 64 + 32 + 1
+    STZEROES
+    // → Stack state
+    // s0: Builder
+    // s1: `body`
+    // s2: `mode`
+    STDICT
+    ENDC
+    SWAP
+    SENDRAWMSG
+""";
+
+() $global_send((int, cell, cell, cell, int, slice, int) $params) impure asm """
+    NEWC
+    b{01} STSLICECONST  // store tag = $0 and ihr_disabled = true
+    1 STI               // store `bounce`
+    b{000} STSLICECONST // store bounced = false and src = addr_none
+    STSLICE             // store `to`
+    SWAP
+    STGRAMS             // store `value`
+    105 PUSHINT         // 1 + 4 + 4 + 64 + 32
+    STZEROES            // store currency_collection, ihr_fee, fwd_fee, created_lt and created_at
+    // → Stack state
+    // s0: Builder
+    // s1: `data`
+    // s2: `code`
+    // s3: `body`
+    // s4: `mode`
+
+    // Group 2: Placing the Builder after code and data, then checking those for nullability
+    s2 XCHG0
+    DUP2
+    ISNULL
+    SWAP
+    ISNULL
+    AND
+    // → Stack state
+    // s0: -1 (true) if `data` and `code` are both null, 0 (false) otherwise
+    // s1: `code`
+    // s2: `data`
+    // s3: Builder
+    // s4: `body`
+    // s5: `mode`
+
+    // Group 3: Left branch of the IFELSE, executed if s0 is -1 (true)
+    <{
+        DROP2 // drop `data` and `code`, since either of those is null
+        b{0} STSLICECONST
+    }> PUSHCONT
+
+    // Group 3: Right branch of the IFELSE, executed if s0 is 0 (false)
+    <{
+        // _ split_depth:(Maybe (## 5))
+        //   special:(Maybe TickTock)
+        //   code:(Maybe ^Cell)
+        //   data:(Maybe ^Cell)
+        //   library:(Maybe ^Cell)
+        // = StateInit;
+        ROT                // place message Builder on top
+        b{10} STSLICECONST // store Maybe = true, Either = false
+        // Start composing inlined StateInit
+        b{00} STSLICECONST // store split_depth and special first
+        STDICT             // store code
+        STDICT             // store data
+        b{0} STSLICECONST  // store library
+    }> PUSHCONT
+
+    // Group 3: IFELSE that does the branching shown above
+    IFELSE
+    // → Stack state
+    // s0: Builder
+    // s1: null or StateInit
+    // s2: `body`
+    // s3: `mode`
+
+    // Group 4: Finalizing the message
+    STDICT // store `body` as ref with an extra Maybe bit, since `body` might be null
+    ENDC
+    // → Stack state
+    // s0: Cell
+    // s1: `mode`
+
+    // Group 5: Sending the message, with `mode` on top
+    SWAP
+    SENDRAWMSG // https://github.com/tact-lang/tact/issues/1558
+""";
+
+cell $Builder$_fun_endCell(builder $self) impure asm """
+    ENDC
+""";
+
+slice $Cell$_fun_beginParse(cell $self) impure asm """
+    CTOS
+""";
+
+((slice, cell, slice), ()) $WalletMap$_fun_notify((slice, cell, slice) $self, cell $body) impure inline {
+    var (($self'admin, $self'walletAmounts, $self'myJettonWallet)) = $self;
+    slice $to = __tact_context_get_sender();
+    int $bounce = false;
+    if (false) {
+        int $balance = $global_myBalance();
+        int $balanceBeforeMessage = ($balance - $Context$_get_value(__tact_context_get()));
+        if (($balanceBeforeMessage < 0)) {
+            $global_nativeReserve(0, 0);
+            $global_message($MessageParameters$_constructor_bounce_to_value_mode_body($bounce, $to, 0, 130, $body));
+            return (($self'admin, $self'walletAmounts, $self'myJettonWallet), ());
+        }
+    }
+    $global_message($MessageParameters$_constructor_bounce_to_value_mode_body($bounce, $to, 0, 66, $body));
+    return (($self'admin, $self'walletAmounts, $self'myJettonWallet), ());
+}
+
+;; TestTwo_WalletMap.storage.fc
+;;
+;; Type: Context
+;; TLB: _ bounceable:bool sender:address value:int257 raw:^slice = Context
+;;
+
+_ $Context$_get_value((int, slice, int, slice) v) inline {
+    var (v'bounceable, v'sender, v'value, v'raw) = v;
+    return v'value;
+}
+
+;;
+;; Type: SendParameters
+;; TLB: _ mode:int257 body:Maybe ^cell code:Maybe ^cell data:Maybe ^cell value:int257 to:address bounce:bool = SendParameters
+;;
+
+((int, cell, cell, cell, int, slice, int)) $SendParameters$_constructor_to_value_bounce_body(slice $to, int $value, int $bounce, cell $body) inline {
+    return (0, $body, null(), null(), $value, $to, $bounce);
+}
+
+((int, cell, cell, cell, int, slice, int)) $SendParameters$_constructor_to_bounce_value_mode(slice $to, int $bounce, int $value, int $mode) inline {
+    return ($mode, null(), null(), null(), $value, $to, $bounce);
+}
+
+;;
+;; Type: MessageParameters
+;; TLB: _ mode:int257 body:Maybe ^cell value:int257 to:address bounce:bool = MessageParameters
+;;
+
+((int, cell, int, slice, int)) $MessageParameters$_constructor_bounce_to_value_mode_body(int $bounce, slice $to, int $value, int $mode, cell $body) inline {
+    return ($mode, $body, $value, $to, $bounce);
+}
+
+;;
+;; Type: DeployOk
+;; Header: 0xaff90f57
+;; TLB: deploy_ok#aff90f57 queryId:uint64 = DeployOk
+;;
+
+builder $DeployOk$_store(builder build_0, (int) v) inline {
+    var (v'queryId) = v;
+    build_0 = store_uint(build_0, 2952335191, 32);
+    build_0 = build_0.store_uint(v'queryId, 64);
+    return build_0;
+}
+
+cell $DeployOk$_store_cell((int) v, builder b) inline {
+    return $DeployOk$_store(b, v).end_cell();
+}
+
+((int)) $DeployOk$_constructor_queryId(int $queryId) inline {
+    return ($queryId);
+}
+
+;;
+;; Type: JettonTransfer
+;; Header: 0x0f8a7ea5
+;; TLB: jetton_transfer#0f8a7ea5 queryId:uint64 amount:coins destination:address responseDestination:address customPayload:Maybe ^cell forwardTonAmount:coins forwardPayload:remainder<slice> = JettonTransfer
+;;
+
+builder $JettonTransfer$_store(builder build_0, (int, int, slice, slice, cell, int, slice) v) inline {
+    var (v'queryId, v'amount, v'destination, v'responseDestination, v'customPayload, v'forwardTonAmount, v'forwardPayload) = v;
+    build_0 = store_uint(build_0, 260734629, 32);
+    build_0 = build_0.store_uint(v'queryId, 64);
+    build_0 = build_0.store_varuint16(v'amount);
+    build_0 = build_0.store_slice(v'destination);
+    build_0 = build_0.store_slice(v'responseDestination);
+    build_0 = build_0.store_maybe_ref(v'customPayload);
+    build_0 = build_0.store_varuint16(v'forwardTonAmount);
+    build_0 = build_0.store_slice(v'forwardPayload);
+    return build_0;
+}
+
+cell $JettonTransfer$_store_cell((int, int, slice, slice, cell, int, slice) v, builder b) inline {
+    return $JettonTransfer$_store(b, v).end_cell();
+}
+
+((int, int, slice, slice, cell, int, slice)) $JettonTransfer$_constructor_queryId_amount_destination_responseDestination_customPayload_forwardTonAmount_forwardPayload(int $queryId, int $amount, slice $destination, slice $responseDestination, cell $customPayload, int $forwardTonAmount, slice $forwardPayload) inline {
+    return ($queryId, $amount, $destination, $responseDestination, $customPayload, $forwardTonAmount, $forwardPayload);
+}
+
+;;
+;; Type: WalletMap
+;; TLB: _ admin:address walletAmounts:dict<address, int> myJettonWallet:address = WalletMap
+;;
+
+builder $WalletMap$_store(builder build_0, (slice, cell, slice) v) inline {
+    var (v'admin, v'walletAmounts, v'myJettonWallet) = v;
+    build_0 = build_0.store_slice(v'admin);
+    build_0 = build_0.store_dict(v'walletAmounts);
+    build_0 = __tact_store_address_opt(build_0, v'myJettonWallet);
+    return build_0;
+}
+
+(slice, ((slice, cell, slice))) $WalletMap$_load(slice sc_0) inline {
+    var v'admin = sc_0~load_msg_addr();
+    var v'walletAmounts = sc_0~load_dict();
+    var v'myJettonWallet = sc_0~__tact_load_address_opt();
+    return (sc_0, (v'admin, v'walletAmounts, v'myJettonWallet));
+}
+
+(slice, ((slice))) $WalletMap$init$_load(slice sc_0) inline {
+    var v'admin = sc_0~load_msg_addr();
+    return (sc_0, (v'admin));
+}
+
+(slice, cell, slice) $WalletMap$_contract_load() impure inline {
+    slice $sc = get_data().begin_parse();
+    int $loaded = $sc~load_int(1);
+    if ($loaded) {
+        return $sc~$WalletMap$_load();
+    }
+    else {
+        (slice $admin) = $sc~$WalletMap$init$_load();
+        $sc.end_parse();
+        return $WalletMap$_contract_init($admin);
+    }
+}
+
+() $WalletMap$_contract_store((slice, cell, slice) v) impure inline {
+    builder b = begin_cell();
+    b = b.store_int(true, 1);
+    b = $WalletMap$_store(b, v);
+    set_data(b.end_cell());
+}
+
+;;
+;; Contract WalletMap functions
+;;
+
+(slice, cell, slice) $WalletMap$_contract_init(slice $admin) impure inline {
+    var (($self'admin, $self'walletAmounts, $self'myJettonWallet)) = (null(), null(), null());
+    $self'admin = $admin;
+    $self'myJettonWallet = null();
+    return ($self'admin, $self'walletAmounts, $self'myJettonWallet);
+}
+
+((slice, cell, slice), int) $WalletMap$_fun_getWalletAmount((slice, cell, slice) $self, slice $wallet) impure inline_ref {
+    var (($self'admin, $self'walletAmounts, $self'myJettonWallet)) = $self;
+    int $amount = __tact_dict_get_slice_int($self'walletAmounts, 267, $wallet, 257);
+    if ((~ null?($amount))) {
+        var $fresh$ret_0 = __tact_not_null($amount);
+        return (($self'admin, $self'walletAmounts, $self'myJettonWallet), $fresh$ret_0);
+    }
+    var $fresh$ret_1 = 0;
+    return (($self'admin, $self'walletAmounts, $self'myJettonWallet), $fresh$ret_1);
+}
+
+((slice, cell, slice), cell) $WalletMap$_fun_getAllWallets((slice, cell, slice) $self) impure inline_ref {
+    var (($self'admin, $self'walletAmounts, $self'myJettonWallet)) = $self;
+    var $fresh$ret_2 = $self'walletAmounts;
+    return (($self'admin, $self'walletAmounts, $self'myJettonWallet), $fresh$ret_2);
+}
+
+((slice, cell, slice), slice) $WalletMap$_fun_getMyJettonWallet((slice, cell, slice) $self) impure inline_ref {
+    var (($self'admin, $self'walletAmounts, $self'myJettonWallet)) = $self;
+    var $fresh$ret_3 = $self'myJettonWallet;
+    return (($self'admin, $self'walletAmounts, $self'myJettonWallet), $fresh$ret_3);
+}
+
+;;
+;; Get methods of a Contract WalletMap
+;;
+
+_ %getWalletAmount(slice $wallet) method_id(102715) {
+    slice $wallet = $wallet;
+    var self = $WalletMap$_contract_load();
+    var res = self~$WalletMap$_fun_getWalletAmount($wallet);
+    return res;
+}
+
+_ %getAllWallets() method_id(111055) {
+    var self = $WalletMap$_contract_load();
+    var res = self~$WalletMap$_fun_getAllWallets();
+    return res;
+}
+
+_ %getMyJettonWallet() method_id(119255) {
+    var self = $WalletMap$_contract_load();
+    var res = self~$WalletMap$_fun_getMyJettonWallet();
+    return res;
+}
+
+;;
+;; Routing of a Contract WalletMap
+;;
+
+;; message opcode reader utility: only binary receivers
+;; Returns 32 bit message opcode, otherwise throws the "Invalid incoming message" exit code
+(slice, int) ~load_opcode_internal(slice s) asm( -> 1 0) "32 LDUQ 130 THROWIFNOT";
+
+() recv_internal(int msg_value, cell in_msg_cell, slice in_msg) impure {
+    
+    ;; Context
+    var cs = in_msg_cell.begin_parse();
+    cs~skip_bits(2);
+    var msg_bounceable = cs~load_int(1);
+    var msg_bounced = cs~load_int(1);
+    slice msg_sender_addr = cs~load_msg_addr();
+    __tact_context = (msg_bounceable, msg_sender_addr, msg_value, cs);
+    __tact_context_sender = msg_sender_addr;
+    
+    ;; Load contract data
+    var ($self'admin, $self'walletAmounts, $self'myJettonWallet) = $WalletMap$_contract_load();
+    
+    ;; Handle bounced messages
+    if (msg_bounced) { return (); }
+    int op = 0;
+    int in_msg_length = slice_bits(in_msg);
+    if (in_msg_length >= 32) {
+        op = in_msg~load_uint(32);
+    }
+    ;; Receive JettonTransferNotification message
+    if (op == 0x7362d09c) {
+        var $msg'queryId = in_msg~load_uint(64);
+        var $msg'amount = in_msg~load_varuint16();
+        var $msg'sender = in_msg~load_msg_addr();
+        var $msg'forwardPayload = in_msg;
+        throw_unless(12421, (~ null?($self'myJettonWallet)));
+        throw_unless(4010, ( equal_slices_bits(__tact_context_get_sender(), __tact_not_null($self'myJettonWallet)) ));
+        slice $user = $msg'sender;
+        int $current = ($self'admin, $self'walletAmounts, $self'myJettonWallet)~$WalletMap$_fun_getWalletAmount($user);
+        $self'walletAmounts~__tact_dict_set_slice_int(267, $user, ($current + $msg'amount), 257);
+        $WalletMap$_contract_store(($self'admin, $self'walletAmounts, $self'myJettonWallet));
+        return ();
+    }
+    
+    ;; Receive WithdrawRequest message
+    if (op == 1488609783) {
+        var $msg'amount = in_msg~load_int(257);
+        slice $user = __tact_context_get_sender();
+        int $current = ($self'admin, $self'walletAmounts, $self'myJettonWallet)~$WalletMap$_fun_getWalletAmount($user);
+        throw_unless(12421, (~ null?($self'myJettonWallet)));
+        throw_unless(42591, ($current >= $msg'amount));
+        throw_unless(61135, ($msg'amount > 0));
+        $self'walletAmounts~__tact_dict_set_slice_int(267, $user, ($current - $msg'amount), 257);
+        $global_send($SendParameters$_constructor_to_value_bounce_body(__tact_not_null($self'myJettonWallet), 350000000, true, $JettonTransfer$_store_cell($JettonTransfer$_constructor_queryId_amount_destination_responseDestination_customPayload_forwardTonAmount_forwardPayload(0, $msg'amount, $user, $user, null(), 0, $Cell$_fun_beginParse($Builder$_fun_endCell(store_uint($global_beginCell(), 0, 1)))), begin_cell())));
+        $WalletMap$_contract_store(($self'admin, $self'walletAmounts, $self'myJettonWallet));
+        return ();
+    }
+    
+    ;; Receive Battle message
+    if (op == 953628936) {
+        var $msg'winner = in_msg~load_msg_addr();
+        var $msg'loser = in_msg~load_msg_addr();
+        throw_unless(58091, ( equal_slices_bits(__tact_context_get_sender(), $self'admin) ));
+        int $loseAmt = 1000000000000;
+        int $winAmt = 800000000000;
+        int $loserBal = ($self'admin, $self'walletAmounts, $self'myJettonWallet)~$WalletMap$_fun_getWalletAmount($msg'loser);
+        throw_unless(40577, ($loserBal >= $loseAmt));
+        $self'walletAmounts~__tact_dict_set_slice_int(267, $msg'loser, ($loserBal - $loseAmt), 257);
+        int $winnerBal = ($self'admin, $self'walletAmounts, $self'myJettonWallet)~$WalletMap$_fun_getWalletAmount($msg'winner);
+        $self'walletAmounts~__tact_dict_set_slice_int(267, $msg'winner, ($winnerBal + $winAmt), 257);
+        $WalletMap$_contract_store(($self'admin, $self'walletAmounts, $self'myJettonWallet));
+        return ();
+    }
+    
+    ;; Receive Claim message
+    if (op == 2278860399) {
+        var $msg'user = in_msg~load_msg_addr();
+        var $msg'amount = in_msg~load_int(257);
+        throw_unless(58091, ( equal_slices_bits(__tact_context_get_sender(), $self'admin) ));
+        int $current = ($self'admin, $self'walletAmounts, $self'myJettonWallet)~$WalletMap$_fun_getWalletAmount($msg'user);
+        $self'walletAmounts~__tact_dict_set_slice_int(267, $msg'user, ($current + $msg'amount), 257);
+        $WalletMap$_contract_store(($self'admin, $self'walletAmounts, $self'myJettonWallet));
+        return ();
+    }
+    
+    ;; Receive SetJettonWallet message
+    if (op == 3010105720) {
+        var $msg'jettonWallet = in_msg~load_msg_addr();
+        throw_unless(58091, ( equal_slices_bits(__tact_context_get_sender(), $self'admin) ));
+        $self'myJettonWallet = $msg'jettonWallet;
+        $WalletMap$_contract_store(($self'admin, $self'walletAmounts, $self'myJettonWallet));
+        return ();
+    }
+    
+    ;; Receive OwnerWithdraw message
+    if (op == 318151818) {
+        var $msg'amount = in_msg~load_int(257);
+        throw_unless(58091, ( equal_slices_bits(__tact_context_get_sender(), $self'admin) ));
+        $global_send($SendParameters$_constructor_to_bounce_value_mode($self'admin, true, $msg'amount, 3));
+        $WalletMap$_contract_store(($self'admin, $self'walletAmounts, $self'myJettonWallet));
+        return ();
+    }
+    
+    ;; Receive AdminJettonWithdraw message
+    if (op == 1567757798) {
+        var $msg'amount = in_msg~load_int(257);
+        throw_unless(58091, ( equal_slices_bits(__tact_context_get_sender(), $self'admin) ));
+        throw_unless(3602, (~ null?($self'myJettonWallet)));
+        $global_send($SendParameters$_constructor_to_value_bounce_body(__tact_not_null($self'myJettonWallet), 350000000, true, $JettonTransfer$_store_cell($JettonTransfer$_constructor_queryId_amount_destination_responseDestination_customPayload_forwardTonAmount_forwardPayload(0, $msg'amount, $self'admin, $self'admin, null(), 0, $Cell$_fun_beginParse($Builder$_fun_endCell(store_uint($global_beginCell(), 0, 1)))), begin_cell())));
+        $WalletMap$_contract_store(($self'admin, $self'walletAmounts, $self'myJettonWallet));
+        return ();
+    }
+    
+    ;; Receive Deploy message
+    if (op == 0x946a98b6) {
+        var $deploy'queryId = in_msg~load_uint(64);
+        ($self'admin, $self'walletAmounts, $self'myJettonWallet)~$WalletMap$_fun_notify($DeployOk$_store_cell($DeployOk$_constructor_queryId($deploy'queryId), begin_cell()));
+        $WalletMap$_contract_store(($self'admin, $self'walletAmounts, $self'myJettonWallet));
+        return ();
+    }
+    
+    ;; Receive empty message
+    if ((op == 0) & (in_msg_length <= 32)) {
+        $WalletMap$_contract_store(($self'admin, $self'walletAmounts, $self'myJettonWallet));
+        return ();
+    }
+    ;; Throw if not handled
+    throw(130);
+}
+
+
+() __tact_selector_hack_asm() impure asm """
+@atend @ 1 {
+        execute current@ context@ current!
+        {
+            // The core idea of this function is to save gas by avoiding unnecessary dict jump, when recv_internal/recv_external is called
+            // We want to extract recv_internal/recv_external from the dict and select needed function
+            // not by jumping to the needed function by it's index, but by using usual IF statements.
+
+            }END> b> // Close previous builder, now we have a cell of previous code on top of the stack
+
+            <{ // Start of the new code builder
+                SETCP0
+                // Swap the new code builder with the previous code, now we have previous code on top of the stack
+                swap
+                // Transform cell to slice and load first ref from the previous code, now we have the dict on top of the stack
+                <s ref@
+
+                // Extract the recv_internal from the dict
+                dup 0 swap @procdictkeylen idict@ { "internal shortcut error" abort } ifnot
+                swap
+
+                // Delete the recv_internal from the dict
+                0 swap @procdictkeylen idict- drop
+                // Delete the recv_external from the dict (it's okay if it's not there)
+                -1 swap @procdictkeylen idict- drop
+                // Delete the __tact_selector_hack from the dict
+                65535 swap @procdictkeylen idict- drop
+
+                // Bring the code builder from the bottom of the stack
+                // because if recv_external extraction is optional, and the number of elements on the stack is not fixed
+                depth 1- roll
+                // Swap with the dict from which we extracted recv_internal and (maybe) recv_external
+                swap
+
+                // Check if the dict is empty
+                dup null?
+                // Store a copy of this flag in the bottom of the stack
+                dup depth 1- -roll
+                {
+                    // If the dict is empty, just drop it (it will be null if it's empty)
+                    drop
+                }
+                {
+                    // If the dict is not empty, prepare continuation to be stored in c3
+                    <{
+                        // Save this dict as first ref in this continuation, it will be pushed in runtime by DICTPUSHCONST
+                        swap @procdictkeylen DICTPUSHCONST
+                        // Jump to the needed function by it's index
+                        DICTIGETJMPZ
+                        // If such key is not found, throw 11 along with the key as an argument
+                        11 THROWARG
+                    }> PUSHCONT
+                    // Store the continuation in c3
+                    c3 POP
+                } cond
+
+                // Function id is on top of the (runtime) stack
+                DUP IFNOTJMP:<{
+                    // place recv_internal here
+                    DROP swap @addop
+                }>
+
+                // Bring back the flag, indicating if the dict is empty or not from the bottom of the stack
+                depth 1- roll
+                {
+                    // If the dict is empty, throw 11
+                    11 THROWARG
+                }
+                {
+                    // If the dict is not empty, jump to continuation from c3
+                    c3 PUSH JMPX
+                } cond
+            }> b>
+        } : }END>c
+        current@ context! current!
+    } does @atend !
+""";
+
+() __tact_selector_hack() method_id(65535) {
+    return __tact_selector_hack_asm();
+}
