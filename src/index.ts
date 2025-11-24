@@ -18,7 +18,7 @@ import {
 } from "../contracts/build/TestTwo/TestTwo_WalletMap";
 
 // --- CONFIGURATION ---
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT; // Render provides a PORT env var
 const MNEMONIC = process.env.MNEMONIC?.split(" ") || [];
 const TONCENTER_KEY = process.env.TONCENTER_KEY;
 const CONTRACT_ADDRESS_STR =
@@ -28,53 +28,18 @@ const CONTRACT_ADDRESS = Address.parse(CONTRACT_ADDRESS_STR);
 
 // --- INITIALIZE APP ---
 const app = express();
-
-// --- CORS CONFIGURATION (CLOUDFLARE + TELEGRAM OPTIMIZED) ---
-const allowedOrigins = [
-  "https://clashwarriors.tech",
-  "https://play.clashwarriors.tech", // Your Cloudflare URL
-  "https://adorable-fudge-c73118.netlify.app",
-  "http://localhost:5173",
-  "https://web.telegram.org", // Telegram Web
-  "https://webk.telegram.org", // Telegram Web K
-  "https://webz.telegram.org", // Telegram Web Z
-];
-
-const corsOptions = {
-  origin: function (
-    origin: string | undefined,
-    callback: (err: Error | null, allow?: boolean) => void
-  ) {
-    // Allow requests with no origin (like mobile apps, curl, or server-to-server)
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.warn(`⚠️ Blocked by CORS: ${origin}`);
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-    "X-Requested-With",
-    "Accept",
-    "Origin",
-    "ngrok-skip-browser-warning",
-  ],
-  credentials: true,
-  optionsSuccessStatus: 204, // Legacy browser support
-};
-
-// 1. Handle Preflight Requests Explicitly (CRITICAL)
-app.options("*", cors(corsOptions));
-
-// 2. Apply CORS to all routes
-app.use(cors(corsOptions));
-
-// 3. Parse JSON
+app.use(
+  cors({
+    origin: [
+      "https://clashwarriors.tech",
+      "https://play.clashwarriors.tech",
+      "https://adorable-fudge-c73118.netlify.app",
+      "http://localhost:5173"
+    ],
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(express.json());
 
 // Global Client Instance
@@ -84,15 +49,17 @@ async function init() {
   try {
     console.log("🔄 Connecting to TON Testnet via Toncenter...");
 
-    // Using Toncenter with API KEY + 60s Timeout
+    // ✅ FIX 1: Using Toncenter with API KEY + 60s Timeout
     client = new TonClient({
       endpoint: "https://testnet.toncenter.com/api/v2/jsonRPC",
       apiKey: TONCENTER_KEY,
-      timeout: 60000,
+      timeout: 60000, // 60 seconds timeout
     });
 
+    // ✅ FIX 2: Correct property access for getMasterchainInfo
     const masterchainInfo = await client.getMasterchainInfo();
 
+    // The property is 'latestSeqno', not 'last.seqno'
     console.log(
       `✅ Connected to TON. Latest Seqno: ${masterchainInfo.latestSeqno}`
     );
