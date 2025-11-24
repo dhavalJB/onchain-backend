@@ -28,15 +28,24 @@ const CONTRACT_ADDRESS = Address.parse(CONTRACT_ADDRESS_STR);
 
 // --- INITIALIZE APP ---
 const app = express();
+const allowedOrigins = [
+  "https://play.clashwarriors.tech",
+  "https://clashwarriors.tech",
+  "http://localhost:5173",
+  "https://adorable-fudge-c73118.netlify.app",
+];
+
 app.use(
   cors({
-    origin: [
-      "https://clashwarriors.tech",
-      "https://play.clashwarriors.tech",
-      "https://adorable-fudge-c73118.netlify.app",
-      "http://localhost:5173"
-    ],
-    methods: ["GET", "POST"],
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
