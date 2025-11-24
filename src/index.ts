@@ -33,6 +33,7 @@ const allowedOrigins = [
   "https://clashwarriors.tech",
   "http://localhost:5173",
   "https://adorable-fudge-c73118.netlify.app",
+  "https://share.clashwarriors.tech",
 ];
 
 app.use(
@@ -190,6 +191,77 @@ function startServer() {
   // ---------------------------------------------------------
   app.get("/health", (req, res) => {
     res.status(200).json({ status: "alive" });
+  });
+
+  // ---------------------------------------------------------
+  // 5. BATTLE REPORT (Stake Mode Settlement)
+  // ---------------------------------------------------------
+  app.post("/battle-report", async (req, res) => {
+    try {
+      const { winnerWalletId, loserWalletId, walletId, result } = req.body;
+
+      // Case A: full duel (both stake users)
+      if (winnerWalletId && loserWalletId) {
+        const keyPair = await mnemonicToPrivateKey(MNEMONIC);
+        const adminWallet = client.open(
+          WalletContractV4.create({
+            workchain: 0,
+            publicKey: keyPair.publicKey,
+          })
+        );
+
+        const contract = client.open(WalletMap.fromAddress(CONTRACT_ADDRESS));
+
+        await contract.send(
+          adminWallet.sender(keyPair.secretKey),
+          { value: toNano("0.05") },
+          {
+            $$type: "Battle",
+            winner: Address.parse(winnerWalletId),
+            loser: Address.parse(loserWalletId),
+          }
+        );
+
+        return res.json({ success: true, mode: "duel" });
+      }
+
+      // Case B: only one stake user
+      if (walletId && result) {
+        const TEST_WALLET =
+          process.env.TEST_WALLET_1 ||
+          "0QAmZfkL6k6znj7RUsovSZEjkNuENmjDsOBcRd6zzAFDds8I"; // FAKE OPPONENT
+
+        const stakeUser = Address.parse(walletId);
+        const dummy = Address.parse(TEST_WALLET);
+
+        const keyPair = await mnemonicToPrivateKey(MNEMONIC);
+        const adminWallet = client.open(
+          WalletContractV4.create({
+            workchain: 0,
+            publicKey: keyPair.publicKey,
+          })
+        );
+
+        const contract = client.open(WalletMap.fromAddress(CONTRACT_ADDRESS));
+
+        await contract.send(
+          adminWallet.sender(keyPair.secretKey),
+          { value: toNano("0.05") },
+          {
+            $$type: "Battle",
+            winner: result === "win" ? stakeUser : dummy,
+            loser: result === "win" ? dummy : stakeUser,
+          }
+        );
+
+        return res.json({ success: true, mode: "single" });
+      }
+
+      res.status(400).json({ error: "Invalid battle payload" });
+    } catch (err) {
+      console.error("Battle Report Error:", err);
+      res.status(500).json({ error: "Failed to send battle report" });
+    }
   });
 
   // Start Listening
